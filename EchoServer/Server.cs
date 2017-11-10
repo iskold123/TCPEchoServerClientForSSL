@@ -16,7 +16,7 @@ namespace EchoServer
 
         public void Start()
         {
-            TcpListener serverSocket = new TcpListener(IPAddress.Loopback, PORT);
+            TcpListener serverSocket = new TcpListener(IPAddress.Any, PORT);
             serverSocket.Start();
             Console.WriteLine("Server started");
 
