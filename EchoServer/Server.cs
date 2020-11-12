@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 
 namespace EchoServer
 {
@@ -16,14 +19,34 @@ namespace EchoServer
 
         public void Start()
         {
+
+            string serverCertificateFile = @"C:\Users\Bruger\Certificates\ServerSSL.pfx";
+            bool clientCertificateRequired = false;
+            bool checkCertificateRevocation = true;
+            SslProtocols enabledSSLProtocols = SslProtocols.Tls;
+
+            X509Certificate serverCertificate =
+                new X509Certificate2(serverCertificateFile, "madsersej");
+
             TcpListener serverSocket = new TcpListener(IPAddress.Any, PORT);
             serverSocket.Start();
             Console.WriteLine("Server started");
 
-            using (TcpClient connectionSocket = serverSocket.AcceptTcpClient())
-            using (Stream ns = connectionSocket.GetStream())
-            using (StreamReader sr = new StreamReader(ns))
-            using (StreamWriter sw = new StreamWriter(ns))
+            //Stream unsecureStream = connectionSocket.GetStream();
+            //bool leaveInnerStreamOpen = false;
+            //SslStream sslStream = new SslStream(unsecureStream, leaveInnerStreamOpen);
+            //sslStream.AuthenticateAsServer(serverCertificate, clientCertificateRequired,
+            //    enabledSSLProtocols, checkCertificateRevocation);
+
+            TcpClient connectionSocket = serverSocket.AcceptTcpClient();
+            Stream uns = connectionSocket.GetStream();
+            bool leaveInnerStreamOpen = false;
+            SslStream SslStream = new SslStream(uns,leaveInnerStreamOpen);
+            SslStream.AuthenticateAsServer(serverCertificate);
+
+            using (StreamReader sr = new StreamReader(SslStream))
+            using (StreamWriter sw = new StreamWriter(SslStream))
+                
             {
                 Console.WriteLine("Server activated");
                 sw.AutoFlush = true; // enable automatic flushing

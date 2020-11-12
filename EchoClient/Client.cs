@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Xml.Schema;
 
@@ -18,10 +19,13 @@ namespace EchoClient
         public void Start()
         {
 
-            using (TcpClient connectionSocket = new TcpClient(IPAddress.Loopback.ToString(), PORT))
-            using (Stream ns = connectionSocket.GetStream())
-            using (StreamReader sr = new StreamReader(ns))
-            using (StreamWriter sw = new StreamWriter(ns))
+            TcpClient connectionSocket = new TcpClient("192.168.104.136", PORT); // Ronnie IP = 128
+            Stream uns = connectionSocket.GetStream();
+                bool leaveInnerStreamOpen = false;
+            SslStream sslStream = new SslStream(uns, leaveInnerStreamOpen);
+            sslStream.AuthenticateAsClient("FakeServerName"); // Virker lokalt...
+            using (StreamReader sr = new StreamReader(sslStream))
+            using (StreamWriter sw = new StreamWriter(sslStream))
             {
                 Console.WriteLine("Client have connected");
                 sw.AutoFlush = true; // enable automatic flushing
